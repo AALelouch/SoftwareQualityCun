@@ -1,0 +1,21 @@
+server:
+  port: 8888
+
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/AALelouch/config-client-film
+          clone-on-start: true
+          default-label: main
+
+  application:
+    name: server-client-film
+
+  profiles:
+    active: dev, aws
+
+
+debug:
+  enable: true

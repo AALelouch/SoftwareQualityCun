@@ -1,0 +1,139 @@
+{
+  "AWSEBDockerrunVersion": 3,
+  "containerDefinitions": [
+    {
+      "name": "postgres-docker",
+      "image": "postgres",
+      "environment": [
+        {
+          "POSTGRES_USER": "postgres",
+          "POSTGRES_PASSWORD": "password"
+        }
+      ],
+      "portMappings": [
+        {
+          "containerPort": 5432
+        }
+      ],
+      "essential": true,
+      "memoryReservation": 128
+    },
+
+
+    {
+      "name": "zookeeper",
+      "image": "confluentinc/cp-zookeeper:7.0.1",
+      "environment": [
+        {
+          "ZOOKEEPER_CLIENT_PORT": 2181,
+          "ZOOKEEPER_TICK_TIME": 2000
+        }
+      ],
+      "portMappings": [
+        {
+          "containerPort": 2181
+        }
+      ],
+      "essential": true,
+      "memoryReservation": 128
+    },
+
+
+    {
+      "name": "broker",
+      "image": "confluentinc/cp-kafka:7.0.1",
+      "environment": [
+        {
+          "KAFKA_BROKER_ID" : 1,
+          "KAFKA_ZOOKEEPER_CONNECT": "zookeeper:2181",
+          "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP": "PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT",
+          "KAFKA_ADVERTISED_LISTENERS": "PLAINTEXT://localhost:29092,PLAINTEXT_INTERNAL://broker:9092",
+          "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR": 1,
+          "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR": 1,
+          "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR": 1
+        }
+      ],
+      "portMappings": [
+        {
+          "containerPort": 9092
+        }
+      ],
+      "essential": true,
+      "memoryReservation": 128
+    },
+
+
+    {
+      "name": "config-server",
+      "image": "camiloducuara/config-server",
+      "portMappings": [
+        {
+          "containerPort": 8888
+        }
+      ],
+      "essential": true,
+      "memoryReservation": 128
+    },
+
+    {
+      "name": "eureka-server",
+      "image": "camiloducuara/eureka-server",
+      "portMappings": [
+        {
+          "containerPort": 8761
+        }
+      ],
+      "essential": true,
+      "memoryReservation": 128
+    },
+
+    {
+      "name": "film-api",
+      "image": "camiloducuara/film",
+      "portMappings": [
+        {
+          "containerPort": 8081
+        }
+      ],
+      "essential": true,
+      "memoryReservation": 128
+    },
+
+    {
+      "name": "client-api",
+      "image": "camiloducuara/client",
+      "portMappings": [
+        {
+          "containerPort": 8082
+        }
+      ],
+      "essential": true,
+      "memoryReservation": 128
+    },
+
+    {
+      "name": "user-service",
+      "image": "camiloducuara/user-service",
+      "portMappings": [
+        {
+          "containerPort": 8083
+        }
+      ],
+      "essential": true,
+      "memoryReservation": 128
+    },
+
+    {
+      "name": "gateway",
+      "image": "camiloducuara/gateway",
+      "portMappings": [
+        {
+          "hostPort": 80,
+          "containerPort": 9093
+        }
+      ],
+      "essential": true,
+      "memoryReservation": 128
+    }
+  ]
+}

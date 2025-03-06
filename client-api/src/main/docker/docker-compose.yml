@@ -1,0 +1,127 @@
+---
+version: '3'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+    networks:
+      - spring-cloud-network
+
+  broker:
+    image: confluentinc/cp-kafka:7.0.1
+    container_name: broker
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+    networks:
+      - spring-cloud-network
+
+  postgres-sql:
+    image: postgres
+    container_name: postgres-docker
+    ports:
+      - "15432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+    networks:
+      - spring-cloud-network
+
+  server-client-film:
+    image: server-client-film
+    container_name: server-client-film
+    ports:
+      - "8888:8888"
+
+    networks:
+      - spring-cloud-network
+
+  eureka-server:
+    image: discovery-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - spring-cloud-network
+
+  film-api:
+    image: film
+    container_name: film-api
+    ports:
+      - "8081:8081"
+
+    depends_on:
+      - zookeeper
+      - broker
+      - postgres-sql
+      - server-client-film
+
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-docker/films
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=broker:29092
+
+    networks:
+      - spring-cloud-network
+
+
+
+  client-api:
+    image: client-api
+    container_name: client-api
+    ports:
+      - "8082:8082"
+
+    depends_on:
+      - zookeeper
+      - broker
+      - postgres-sql
+      - server-client-film
+
+    networks:
+      - spring-cloud-network
+
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=broker:29092
+
+  sonar-qube:
+    container_name: sonar-qube
+    # build: ./sonarqube_home
+    image: sonarqube
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    ports:
+      - "9000:9000"
+    networks:
+      - spring-cloud-network
+    volumes:
+      - ./sonarqube_home/conf/:/opt/sonarqube/conf
+      - ./sonarqube_home/data/:/opt/sonarqube/data
+      - ./sonarqube_home/logs/:/opt/sonarqube/logs
+      - ./sonarqube_home/extensions/:/opt/sonarqube/extensions
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 3G
+
+
+
+networks:
+  spring-cloud-network:
+    driver: bridge
