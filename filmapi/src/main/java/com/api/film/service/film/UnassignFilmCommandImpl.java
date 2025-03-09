@@ -42,16 +42,6 @@ public class UnassignFilmCommandImpl implements UnassignFilmCommand {
     @Override
     public void unassignFilm(ReturnFilm requestReturn) {
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<ReturnFilmNotificationModel> request = new HttpEntity<>(
-                buildReturnFilmNotification(buildFilmToReturn(requestReturn)), headers);
-
-        restTemplate.postForObject(URLTOEMAILNOTIFICATION,
-                request,
-                ReturnFilmNotificationModel.class);
-
         filmRepository.save(resetDataOfFilm.apply(buildFilmToReturn(requestReturn)));
     }
 
